@@ -1,0 +1,119 @@
+
+<head>
+    <title>Consulte seu signo</title>
+</head>
+
+<body>
+    <h1>Consulte seu Signo</h1>
+    <form>
+        <label id="lblData" for="txtData">Data de nascimento: </label>
+  
+        <input type="date" id="txtData" /> <br />
+        <br/>   
+        <button id="btnEnviar">Enviar</button>
+  
+        <button id="btnCancelar">Cancelar</button>
+    </form>
+    
+    <div id="divSigno" style="width: 600px"></div>
+
+<script>
+    const btnEnviar = document.getElementById("btnEnviar");
+
+    const btnCancelar = document.getElementById("btnCancelar");
+
+    const txtData = document.getElementById("txtData");
+
+    const divSigno = document.getElementById("divSigno");
+
+    btnEnviar.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        if (txtData.value.length <= 0) {
+          alert("Informe uma data valida!");
+
+          return;
+        }
+
+        carregarDocumentoXml();
+      });
+
+      btnCancelar.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        txtData.value = "";
+
+        divSigno.innerHTML = "";
+      });
+
+      function carregarDocumentoXml() {
+        const xmlhttp = new XMLHttpRequest();
+
+        xmlhttp.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 200) {
+            carregarDadosSigno(this);
+          }
+        };
+
+        xmlhttp.open("GET", "signos.xml", true);
+
+        xmlhttp.send();
+      }
+
+      function carregarDadosSigno(xml) {
+        const xmlDoc = xml.responseXML;
+
+        const x = xmlDoc.getElementsByTagName("signo");
+
+        let conteudo = "";
+
+        const dataValor = txtData.value.slice(5);
+
+        const data = new Date(dataValor);
+
+        for (i = 0; i < x.length; i++) {
+          const dataInicioValor =
+            x[i].getElementsByTagName("dataInicio")[0].childNodes[0].nodeValue;
+
+          const dataFimValor =
+            x[i].getElementsByTagName("dataFim")[0].childNodes[0].nodeValue;
+
+          const [diaInicio, mesInicio] = dataInicioValor.split("/");
+
+          const [diaFim, mesFim] = dataFimValor.split("/");
+
+          const dataInicio = new Date(mesInicio + "-" + diaInicio);
+
+          const dataFim = new Date(mesFim + "-" + diaFim);
+
+          if (
+            data.getTime() >= dataInicio.getTime() &&
+            data.getTime() <= dataFim.getTime()
+          ) {
+            conteudo = `<h2 style='color: red'>${
+              x[i].getElementsByTagName("signoNome")[0].childNodes[0].nodeValue
+            }</h2>`;
+
+            conteudo += "<div style='display: flex; align-items: center;'>";
+
+            conteudo += ` <img src='${
+              x[i].getElementsByTagName("imagem")[0].childNodes[0].nodeValue
+            }' alt='${
+              x[i].getElementsByTagName("signoNome")[0].childNodes[0].nodeValue
+            }' />`;
+
+            conteudo += ` <p style='text-align: justify; margin-left: 10px' >${
+              x[i].getElementsByTagName("descricao")[0].childNodes[0].nodeValue
+            }</p>`;
+
+            conteudo += "</div>";
+
+            break;
+          }
+        }
+
+        document.getElementById("divSigno").innerHTML = conteudo;
+      }
+
+</script>
+</body>
